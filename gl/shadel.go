@@ -1,4 +1,4 @@
-package main
+package gl
 
 import (
 	"fmt"

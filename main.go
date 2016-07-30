@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"sync"
 
+	riftgl "bitbucket.org/realrift/go-shader-tool/gl"
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	//"github.com/go-gl/mathgl/mgl32"
@@ -49,7 +50,7 @@ func main() {
 	version := gl.GoStr(gl.GetString(gl.EXTENSIONS))
 	fmt.Println("OpenGL version", version)
 
-	shadel := NewShadel()
+	shadel := riftgl.NewShadel()
 
 	// Configure the vertex and fragment shaders
 
