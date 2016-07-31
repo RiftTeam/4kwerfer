@@ -2,10 +2,14 @@ NAME=4kwerfer
 
 default: build
 
-build: deps
+build: deps strings
 	go build -o $(NAME) .
 
-
 deps:
-	go get github.com/pointlander/peg
 	git submodule update --init --recursive
+
+strings: tools
+	stringer -type=UniformType gl/types.go
+
+tools:
+	go get golang.org/x/tools/cmd/stringer

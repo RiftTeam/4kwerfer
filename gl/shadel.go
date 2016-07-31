@@ -27,6 +27,7 @@ func (s *ShadelData) Use() {
 	case ev := <-s.reload:
 		log.Printf("reloading %s", ev)
 		s.ReplaceShadel(VSH_FILE, FSH_FILE)
+		log.Print("done")
 
 	default:
 		gl.UseProgram(s.Program)
@@ -47,59 +48,6 @@ func NewShadel() Shadel {
 	go shaderWatcher(reload)
 	//s.Uniforms()
 	return s
-}
-
-func (s *ShadelData) Uniforms() []*Uniform {
-	var uniformCount int32 = -1
-	gl.GetProgramiv(s.Program, gl.ACTIVE_UNIFORMS, &uniformCount)
-	glPanicOnError()
-	retVal := make([]*Uniform, uniformCount)
-	for i := int32(0); i < uniformCount; i++ {
-		name := [100]uint8{}
-		var nameLength int32
-		var size int32
-		var t uint32
-		gl.GetActiveUniform(s.Program, uint32(i), 100, &nameLength, &size, &t, &name[0])
-		retVal[i] = &Uniform{
-			name: string(name[0:nameLength]),
-			t:    toType(t),
-		}
-	}
-	log.Printf(`Uniforms are:
-	------
-	%#v
-	------`, retVal)
-	return retVal
-}
-
-func toType(t uint32) UniformType {
-	switch t {
-	case gl.FLOAT:
-		return TypeFloat
-	case gl.INT:
-		return TypeInt
-	case gl.FLOAT_VEC2:
-		return TypeVec2
-	case gl.FLOAT_VEC3:
-		return TypeVec3
-	}
-	return TypeInvalid
-}
-
-func glPanicOnError() {
-	err := gl.GetError()
-	if err != gl.NO_ERROR {
-		var r string
-		switch err {
-		case gl.INVALID_VALUE:
-			r = "invalid value"
-		case gl.INVALID_OPERATION:
-			r = "invalid operation"
-		case gl.INVALID_ENUM:
-			r = "invalid enum"
-		}
-		panic(r)
-	}
 }
 
 func (s *ShadelData) GetProgram() uint32 {
@@ -134,12 +82,72 @@ func (s *ShadelData) newProgram(vertexShaderSource, fragmentShaderSource string)
 
 		return fmt.Errorf("failed to link program: %v", log)
 	}
-	s.Uniforms()
+	for glerr := gl.GetError(); glerr != gl.NO_ERROR; glerr = gl.GetError() {
+		fmt.Printf("clearing error\n")
+	}
+	//s.uniforms =
+	s.extractUniforms()
 
 	gl.DeleteShader(vertexShader)
 	gl.DeleteShader(fragmentShader)
 
 	return err
+}
+
+func (s *ShadelData) extractUniforms() map[string]uniformData {
+	var uniformCount int32 = -1
+	gl.GetProgramiv(s.Program, gl.ACTIVE_UNIFORMS, &uniformCount)
+	glPanicOnError()
+	var maxLength int32 = -1
+	gl.GetProgramiv(s.Program, gl.ACTIVE_UNIFORM_MAX_LENGTH, &maxLength)
+	glPanicOnError()
+	retVal := make(map[string]uniformData, uniformCount)
+	for i := int32(0); i < uniformCount; i++ {
+		nameBuffer := make([]uint8, maxLength)
+		var nameLength int32
+		var size int32
+		var t uint32
+		gl.GetActiveUniform(s.Program, uint32(i), 100, &nameLength, &size, &t, &nameBuffer[0])
+		glPanicOnError()
+		name := string(nameBuffer[0:nameLength])
+		retVal[name] = uniformData{
+			name:     name,
+			t:        toType(t),
+			location: gl.GetUniformLocation(s.Program, &nameBuffer[0]),
+		}
+		log.Printf("%v", retVal[name])
+	}
+	return retVal
+}
+
+func toType(t uint32) UniformType {
+	switch t {
+	case gl.FLOAT:
+		return TypeFloat
+	case gl.INT:
+		return TypeInt
+	case gl.FLOAT_VEC2:
+		return TypeVec2
+	case gl.FLOAT_VEC3:
+		return TypeVec3
+	}
+	return TypeInvalid
+}
+
+func glPanicOnError() {
+	err := gl.GetError()
+	if err != gl.NO_ERROR {
+		var r string
+		switch err {
+		case gl.INVALID_VALUE:
+			r = "invalid value"
+		case gl.INVALID_OPERATION:
+			r = "invalid operation"
+		case gl.INVALID_ENUM:
+			r = "invalid enum"
+		}
+		panic(r)
+	}
 }
 
 func (s *ShadelData) compileShader(source string, shaderType uint32) (uint32, error) {
@@ -177,11 +185,8 @@ func shaderWatcher(reload chan<- Event) {
 		for {
 			select {
 			case event := <-watcher.Events:
-				//log.Println("event:", event)
 				if event.Op&(fsnotify.Write|fsnotify.Create) != 0 {
-					log.Println("modified file:", event.Name)
 					if strings.HasPrefix(event.Name, "shader") {
-						log.Printf("sending reload event for %s %s", event.Name, event.Op)
 						reload <- Event{EVENT_TYPE_RELOAD, ""}
 					}
 				}
