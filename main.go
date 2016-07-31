@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"sync"
 
-	riftgl "bitbucket.org/realrift/go-shader-tool/gl"
+	riftgl "bitbucket.org/realrift/4kwerfer/gl"
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	//"github.com/go-gl/mathgl/mgl32"
@@ -47,7 +47,7 @@ func main() {
 		panic(err)
 	}
 
-	version := gl.GoStr(gl.GetString(gl.EXTENSIONS))
+	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version", version)
 
 	shadel := riftgl.NewShadel()
@@ -65,9 +65,9 @@ func main() {
 	var vbo uint32
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
-	gl.BufferData(gl.ARRAY_BUFFER, len(cubeVertices)*4, gl.Ptr(cubeVertices), gl.STATIC_DRAW)
+	gl.BufferData(gl.ARRAY_BUFFER, len(fsQuad)*4, gl.Ptr(fsQuad), gl.STATIC_DRAW)
 
-	vertAttrib := uint32(gl.GetAttribLocation(shadel.Program, gl.Str("vert\x00")))
+	vertAttrib := uint32(gl.GetAttribLocation(shadel.GetProgram(), gl.Str("v\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointer(vertAttrib, 3, gl.FLOAT, false, 3*4, gl.PtrOffset(0))
 
@@ -99,23 +99,7 @@ func shouldClose(window *glfw.Window) bool {
 	return window.ShouldClose()
 }
 
-var vertexShader = `
-#version 410
-in vec4 vert;
-void main() {
-    gl_Position = vert;// projection * camera * model * vec4(vert, 1);
-}
-` + "\x00"
-
-var fragmentShader = `
-#version 410
-out vec4 outputColor;
-void main() {
-    outputColor = vec4(0);//texture(tex, fragTexCoord);
-}
-` + "\x00"
-
-var cubeVertices = []float32{
+var fsQuad = []float32{
 	1.0, 1.0, 0.0, // 1.0, 1.0, // vertex 0
 	-1.0, 1.0, 0.0, // 0.0, 1.0, // vertex 1
 	1.0, -1.0, 0.0, // 1.0, 0.0, // vertex 2

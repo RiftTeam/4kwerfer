@@ -1,5 +1,5 @@
 #version 410
-in vec4 vert;
+in vec4 v;
 void main() {
-    gl_Position = vert;
+    gl_Position = v;
 }
