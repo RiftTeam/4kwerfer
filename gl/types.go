@@ -18,17 +18,6 @@ type ShadelData struct {
 	uniforms map[string]Uniform
 }
 
-type UniformType uint32
-
-//go:generate stringer -type=UniformType
-const (
-	TypeInvalid UniformType = iota
-	TypeFloat
-	TypeInt
-	TypeVec2
-	TypeVec3
-)
-
 type uniformData struct {
 	name     string
 	t        UniformType
@@ -49,12 +38,4 @@ type Shadel interface {
 	Use()
 	//	Uniforms() map[string]Uniform
 	GetProgram() uint32
-}
-
-type Vec2 struct {
-	x, y float32
-}
-type Vec3 struct {
-	Vec2
-	z float32
 }

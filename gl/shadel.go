@@ -115,7 +115,7 @@ func (s *ShadelData) extractUniforms() map[string]uniformData {
 			t:        toType(t),
 			location: gl.GetUniformLocation(s.Program, &nameBuffer[0]),
 		}
-		log.Printf("%v", retVal[name])
+		log.Printf("%s", retVal[name])
 	}
 	return retVal
 }

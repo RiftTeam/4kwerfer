@@ -9,7 +9,7 @@ deps:
 	git submodule update --init --recursive
 
 strings: tools
-	stringer -type=UniformType gl/types.go
+	# stringer -type=UniformType gl/types.go
 
 tools:
 	go get golang.org/x/tools/cmd/stringer

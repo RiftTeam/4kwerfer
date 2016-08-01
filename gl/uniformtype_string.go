@@ -4,9 +4,9 @@ package gl
 
 import "fmt"
 
-const _UniformType_name = "TypeInvalidTypeFloatTypeIntTypeVec2TypeVec3"
+const _UniformType_name = "TypeInvalidfloatintvec2vec3"
 
-var _UniformType_index = [...]uint8{0, 11, 20, 27, 35, 43}
+var _UniformType_index = [...]uint8{0, 11, 16, 19, 23, 27}
 
 func (i UniformType) String() string {
 	if i >= UniformType(len(_UniformType_index)-1) {

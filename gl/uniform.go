@@ -2,6 +2,7 @@ package gl
 
 import (
 	"errors"
+	"fmt"
 )
 
 func NewUniform(name string, t UniformType) Uniform {
@@ -50,4 +51,8 @@ func (u *uniformData) checkValueType(v interface{}) error {
 		return errors.New("expected and actual type didn't match")
 	}
 	return nil
+}
+
+func (u uniformData) String() string {
+	return fmt.Sprintf("[name: %s, type: %s, value: %s", u.name, u.t, u.value)
 }
