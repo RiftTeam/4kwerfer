@@ -31,6 +31,7 @@ type Uniform interface {
 	SetValue(interface{}) error
 	GetValue() interface{}
 	ValueString() string
+	Apply() error
 }
 
 type Shadel interface {

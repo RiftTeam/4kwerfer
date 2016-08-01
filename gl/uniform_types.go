@@ -52,7 +52,7 @@ func (v *Float) String() string {
 }
 
 type Int struct {
-	value int
+	value int32
 }
 
 func (v *Int) String() string {

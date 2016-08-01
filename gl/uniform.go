@@ -3,6 +3,8 @@ package gl
 import (
 	"errors"
 	"fmt"
+
+	"github.com/go-gl/gl/v4.1-core/gl"
 )
 
 func NewUniform(name string, t UniformType) Uniform {
@@ -33,6 +35,22 @@ func (u *uniformData) Type() UniformType {
 
 func (u *uniformData) ValueString() string {
 	return ""
+}
+
+func (u *uniformData) Apply() error {
+	switch u.t {
+	case TypeFloat:
+		gl.Uniform1f(u.location, u.value.(Float).value)
+	case TypeInt:
+		gl.Uniform1i(u.location, u.value.(Int).value)
+	case TypeVec2:
+		arr := u.value.(Vec2).value[0]
+		gl.Uniform2fv(u.location, 1, &arr)
+	case TypeVec3:
+		arr := u.value.(Vec2).value[0]
+		gl.Uniform3fv(u.location, 1, &arr)
+	}
+	return nil
 }
 
 func (u *uniformData) checkValueType(v interface{}) error {
