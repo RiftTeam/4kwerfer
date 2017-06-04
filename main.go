@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"sync"
 
-	riftgl "bitbucket.org/realrift/4kwerfer/gl"
+	riftgl "bitbucket.org/rift_collabo/4kwerfer/gl"
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	//"github.com/go-gl/mathgl/mgl32"

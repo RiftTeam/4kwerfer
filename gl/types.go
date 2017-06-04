@@ -1,5 +1,6 @@
 package gl
 
+// EventType marks the event type received
 type EventType uint32
 
 type Event struct {
