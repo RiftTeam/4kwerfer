@@ -1,4 +1,4 @@
-package gl
+package shader
 
 // EventType marks the event type received
 type EventType uint32
@@ -13,10 +13,13 @@ const (
 	EVENT_TYPE_RELOAD
 )
 
+// ShadelData represent the internal shader program
 type ShadelData struct {
 	Program  uint32
 	reload   chan Event
+	reloaded chan interface{}
 	uniforms map[string]Uniform
+	err      bool
 }
 
 type uniformData struct {
@@ -26,6 +29,7 @@ type uniformData struct {
 	location int32
 }
 
+// Uniform represents a typed shader uniform found by introspection of the shader
 type Uniform interface {
 	Name() string
 	Type() UniformType
@@ -38,6 +42,7 @@ type Uniform interface {
 type Shadel interface {
 	ReplaceShadel(string, string) error
 	Use()
-	//	Uniforms() map[string]Uniform
+	SetUniform3f(string, float32, float32, float32)
 	GetProgram() uint32
+	ShaderChanged() <-chan interface{}
 }

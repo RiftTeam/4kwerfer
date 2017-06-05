@@ -1,42 +1,65 @@
-package gl
+package shader
 
 import (
 	"fmt"
-	"github.com/fsnotify/fsnotify"
-	"github.com/go-gl/gl/v4.1-core/gl"
 	"io/ioutil"
 	"log"
 	"strings"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/go-gl/gl/v4.1-core/gl"
 )
 
+// file names for shaders
 const (
-	VSH_FILE = "shader.vsh"
-	FSH_FILE = "shader.fsh"
+	VshFile     = "shader.vsh"
+	FshFile     = "shader.fsh"
+	ExeFshFile  = "frag.glsl"
+	CombineFile = "ppfrag.glsl"
 )
 
+// ReplaceShadel replaces the current shader program with a new one loaded from file
 func (s *ShadelData) ReplaceShadel(vshFile, fshFile string) error {
-	vsh, _ := ioutil.ReadFile("shader.vsh")
-	fsh, _ := ioutil.ReadFile("shader.fsh")
-
-	defer gl.DeleteProgram(s.Program)
-	return s.newProgram(string(vsh)+"\x00", string(fsh)+"\x00")
+	p := s.Program
+	vsh, _ := ioutil.ReadFile(VshFile)
+	fsh, _ := ioutil.ReadFile(FshFile)
+	if err := s.newProgram(string(vsh)+"\x00", string(fsh)+"\x00"); err != nil {
+		log.Printf("Failed to replace shader, keeping last program: %s", err.Error())
+		s.err = true
+	} else {
+		if !s.err {
+			defer gl.DeleteProgram(p)
+		}
+		s.err = false
+		s.Use()
+	}
+	return nil
 }
 
+// Use activates the shader
 func (s *ShadelData) Use() {
 	select {
 	case ev := <-s.reload:
-		log.Printf("reloading %s", ev)
-		s.ReplaceShadel(VSH_FILE, FSH_FILE)
+		log.Printf("reloading %#v", ev)
+		s.ReplaceShadel(VshFile, FshFile)
 		log.Print("done")
+		gl.UseProgram(s.Program)
+		// non blocking send, event is dropped if there is no one paying attention
+		select {
+		case s.reloaded <- nil:
+		default:
+		}
 
 	default:
 		gl.UseProgram(s.Program)
 	}
+
 }
 
-func NewShadel() Shadel {
-	vsh, _ := ioutil.ReadFile("shader.vsh")
-	fsh, _ := ioutil.ReadFile("shader.fsh")
+// NewShadel creates a new shader from files
+func NewShadel(vshFile string, fshFile string) Shadel {
+	vsh, _ := ioutil.ReadFile(vshFile)
+	fsh, _ := ioutil.ReadFile(fshFile)
 	reload := make(chan Event)
 	s := &ShadelData{
 		reload: reload,
@@ -50,18 +73,28 @@ func NewShadel() Shadel {
 	return s
 }
 
+// ShaderChanged returns a channel on which an event is sent after the shader has been reloaded
+func (s *ShadelData) ShaderChanged() <-chan interface{} {
+	return s.reloaded
+}
+
+// GetProgram gets the actual program handle
 func (s *ShadelData) GetProgram() uint32 {
 	return s.Program
 }
 
 func (s *ShadelData) newProgram(vertexShaderSource, fragmentShaderSource string) error {
+	log.Printf("Compiling vert shader")
 	vertexShader, err := s.compileShader(vertexShaderSource, gl.VERTEX_SHADER)
 	if err != nil {
+		println(err.Error())
 		return err
 	}
 
+	log.Printf("Compiling frag shader")
 	fragmentShader, err := s.compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
 	if err != nil {
+		println(err.Error())
 		return err
 	}
 
@@ -79,17 +112,21 @@ func (s *ShadelData) newProgram(vertexShaderSource, fragmentShaderSource string)
 
 		log := strings.Repeat("\x00", int(logLength+1))
 		gl.GetProgramInfoLog(s.Program, logLength, nil, gl.Str(log))
+		fmt.Printf("---\n%v\n", log)
 
 		return fmt.Errorf("failed to link program: %v", log)
 	}
+	println(">>>")
 	for glerr := gl.GetError(); glerr != gl.NO_ERROR; glerr = gl.GetError() {
-		fmt.Printf("clearing error\n")
+		fmt.Printf("clearing error, %#v\n", glerr)
 	}
 	//s.uniforms =
 	s.extractUniforms()
 
 	gl.DeleteShader(vertexShader)
 	gl.DeleteShader(fragmentShader)
+	log.Printf("using new program: %d", s.Program)
+	gl.UseProgram(s.Program)
 
 	return err
 }
@@ -166,6 +203,7 @@ func (s *ShadelData) compileShader(source string, shaderType uint32) (uint32, er
 
 		log := strings.Repeat("\x00", int(logLength+1))
 		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
+		println(log)
 
 		return 0, fmt.Errorf("failed to compile %v: %v", source, log)
 	}
@@ -201,4 +239,11 @@ func shaderWatcher(reload chan<- Event) {
 		log.Fatal(err)
 	}
 	<-done
+}
+
+// SetUniform3f updates the uniform with the fiven name to the given values
+func (s *ShadelData) SetUniform3f(name string, x, y, z float32) {
+	gl.UseProgram(s.Program)
+	uniLoc := gl.GetUniformLocation(s.Program, gl.Str(name+"\x00"))
+	gl.Uniform3f(uniLoc, x, y, z)
 }

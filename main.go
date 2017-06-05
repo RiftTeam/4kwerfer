@@ -7,7 +7,9 @@ import (
 	"runtime"
 	"sync"
 
-	riftgl "bitbucket.org/rift_collabo/4kwerfer/gl"
+	object "bitbucket.org/rift_collabo/4kwerfer/gl/object"
+
+	riftgl "bitbucket.org/rift_collabo/4kwerfer/gl/shader"
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	//"github.com/go-gl/mathgl/mgl32"
@@ -41,6 +43,7 @@ func main() {
 		panic(err)
 	}
 	window.MakeContextCurrent()
+	glfw.SwapInterval(1)
 
 	// Initialize Glow
 	if err := gl.Init(); err != nil {
@@ -50,7 +53,7 @@ func main() {
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version", version)
 
-	shadel := riftgl.NewShadel()
+	shadel := riftgl.NewShadel(riftgl.VshFile, riftgl.FshFile)
 
 	// Configure the vertex and fragment shaders
 
@@ -70,6 +73,23 @@ func main() {
 	vertAttrib := uint32(gl.GetAttribLocation(shadel.GetProgram(), gl.Str("v\x00")))
 	gl.EnableVertexAttribArray(vertAttrib)
 	gl.VertexAttribPointer(vertAttrib, 3, gl.FLOAT, false, 3*4, gl.PtrOffset(0))
+
+	rtt := make([]uint32, 2)
+
+	gl.GenTextures(2, &rtt[0])
+
+	gl.BindTexture(gl.TEXTURE_2D, rtt[0])
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, windowWidth, windowHeight, 0, gl.RGBA, gl.FLOAT, nil)
+
+	gl.BindTexture(gl.TEXTURE_2D, rtt[1])
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, windowWidth, windowHeight, 0, gl.RGBA, gl.FLOAT, nil)
+
+	var fbo uint32
+	gl.GenFramebuffers(1, &fbo)
 
 	//previousTime := glfw.GetTime()
 
@@ -93,6 +113,9 @@ func main() {
 		window.SwapBuffers()
 		glfw.PollEvents()
 	}
+}
+
+func Draw() {
 }
 
 func shouldClose(window *glfw.Window) bool {
