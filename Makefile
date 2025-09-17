@@ -6,7 +6,8 @@ build: deps strings
 	go build -o $(NAME) .
 
 deps:
-	git submodule update --init --recursive
+	go mod tidy
+	go mod download
 
 strings: tools
 	# stringer -type=UniformType gl/types.go

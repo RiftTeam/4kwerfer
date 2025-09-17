@@ -1,8 +1,8 @@
 package scene
 
 import (
-	"bitbucket.org/rift_collabo/4kwerfer/gl/object"
-	"bitbucket.org/rift_collabo/4kwerfer/gl/target"
+	"github.com/RiftTeam/4kwerfer/gl/object"
+	"github.com/RiftTeam/4kwerfer/gl/target"
 	"time"
 )
 

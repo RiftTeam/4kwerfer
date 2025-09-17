@@ -8,7 +8,7 @@ Go project for a new, decoupled tool. Idea: use any editor you want for shader m
 
 Development:
 
-* clone repo to `$GOPATH/bitbucket.org/realrift/go-shader-tool`
+* clone repo
 * happy editing
 
 Just usage:
@@ -23,3 +23,10 @@ Just usage:
 ### Who do I talk to? ###
 
 * That skomp guy or whoever you want to talk to...
+
+
+# Open TODOs:
+
+[] make it work again on mac (migrate gl lib?)
+[] add some time controls (loop, start offset, ...)
+[] add sound from wav?

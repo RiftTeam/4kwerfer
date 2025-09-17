@@ -7,14 +7,13 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"sync"
 	"time"
 
-	"bitbucket.org/rift_collabo/4kwerfer/config"
-	"bitbucket.org/rift_collabo/4kwerfer/gl/object"
-	"bitbucket.org/rift_collabo/4kwerfer/gl/scene"
-	"bitbucket.org/rift_collabo/4kwerfer/gl/shader"
-	"bitbucket.org/rift_collabo/4kwerfer/gl/target"
+	"github.com/RiftTeam/4kwerfer/config"
+	"github.com/RiftTeam/4kwerfer/gl/object"
+	"github.com/RiftTeam/4kwerfer/gl/scene"
+	"github.com/RiftTeam/4kwerfer/gl/shader"
+	"github.com/RiftTeam/4kwerfer/gl/target"
 	"github.com/go-gl/gl/v4.1-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	//"github.com/go-gl/mathgl/mgl32"
@@ -24,8 +23,6 @@ const windowWidth = 1280
 const windowHeight = 720
 
 //var program uint32
-
-var pLock = &sync.Mutex{}
 
 var cfg = config.Config{}
 
@@ -47,10 +44,12 @@ func main() {
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
+	println("Creating window")
 	window, err := glfw.CreateWindow(windowWidth, windowHeight, "Cube", nil, nil)
 	if err != nil {
 		panic(err)
 	}
+	println("Window created")
 	abortRender := make(chan interface{})
 	resetTime := make(chan interface{})
 	window.SetKeyCallback(
@@ -84,13 +83,16 @@ func main() {
 			}
 		},
 	)
+	println("Making context current")
 	window.MakeContextCurrent()
 	glfw.SwapInterval(1)
-
+	println("Context made current")
 	// Initialize Glow
+	println("Initializing glow")
 	if err := gl.Init(); err != nil {
 		panic(err)
 	}
+	println("Glow initialized")
 
 	version := gl.GoStr(gl.GetString(gl.VERSION))
 	fmt.Println("OpenGL version", version)

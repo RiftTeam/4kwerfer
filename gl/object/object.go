@@ -3,7 +3,7 @@ package object
 import (
 	"time"
 
-	shader "bitbucket.org/rift_collabo/4kwerfer/gl/shader"
+	shader "github.com/RiftTeam/4kwerfer/gl/shader"
 	"github.com/go-gl/gl/v4.1-core/gl"
 )
 
