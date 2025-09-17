@@ -27,6 +27,6 @@ Just usage:
 
 # Open TODOs:
 
-[] make it work again on mac (migrate gl lib?)
-[] add some time controls (loop, start offset, ...)
-[] add sound from wav?
+[ ] make it work again on mac (migrate gl lib?)
+[ ] add some time controls (loop, start offset, ...)
+[ ] add sound from wav?
